@@ -5,7 +5,9 @@
 
 using namespace std;
 
-class PaintedNode() {
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*class PaintedNode() {
 
 	public:
 	
@@ -32,41 +34,50 @@ void PaintedNode::add_to_group(int new_col) {
 }
 
 bool PaintedNode::in(int group_num) {
-	for (list<int>::iterator::it = groups.begin(); it != groups.end(); it++) {
+	for (list<int>::iterator it = groups.begin(); it != groups.end(); it++) {
 		if (*it == group_num) return true;
 	}
 	return false;
 }
 
 void PaintedNode::print_groups() {
-	for (list<int>::iterator::it = groups.begin(); it != groups.end(); it++) {
+	for (list<int>::iterator it = groups.begin(); it != groups.end(); it++) {
 		cout << " " << *it << " ";
 	}
+}*/
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int min(int a, int b) {
+	return (a >= b) * a + (a < b) * b;
 }
 
-void push_unmarked_childs(int curr_node, vector<list<int> >& city, stack<int>& main_stack, vector<bool>& visited) {
+void dfs_get_articulations(int curr_node, vector<list<int> >& city, vector<int>& depth, vector<int>& low, vector<int>& parent, int d) {
 
-	for (list::iterator::it = city[curr_node].begin(); it != city[curr_node].end(); it++) {
-		if (not visited[*it]) {
-			it.push(*it);
-			visited[*it] = true;
+	for (list<int>::iterator it = city[curr_node].begin(); it != city[curr_node].end(); it++) {
+		depth[*it] = d;
+		low[*it] = d;
+		if (parent[*it] == -1) {
+			parent[*it] = curr_node;
+			dfs_get_articulations(*it, city, depth, low, parent, d+1);
+			++d;
+		} else if(parent[curr_node] != *it) {
+			low[curr_node] = min(low[curr_node], depth[*it]);
 		}
 	}
 }
 
-void create_blockCutTree(vector<list<int> >& city, vector<list<PaintedNode> >& res) {
-		//Hasta ahora es solo un dfs, despues le agrego toda la fruta
-	vector<int> depths(city.size())
-	stack<int> main_stack;
-	vector<bool> visited(city.size());
+void create_block_cut_tree(vector<list<int> >& city) {
 
-	int left = N;
+	vector<int> depth(city.size());
+	vector<int> low(city.size());
+	vector<int> parent(city.size(), -1);
 	int curr_node = 0;
-	while (left != 0) {
-		main_stack.push_unmarked_childs(curr_node, city, main_stack, visited);
-		curr_node = main_stack.top();
-		main_stack.pop();
-	}
+	depth[0] = 0;
+	//parent[0] = 0;
+	low[0] = 0;
+	int d = 0;
+	dfs_get_articulations(curr_node, city, depth, low, parent, d);
 }
 
 int main() {
@@ -74,17 +85,15 @@ int main() {
 	int N, M;
 	cin >> N >> M;
 
-	vector<list<int> > city(N, list());
+	vector<list<int> > la_matris(N, list<int>());
 	int e1, e2;
 
 	for (int i = 0; i < M; i++) {
 		cin >> e1;
 		cin >> e2;
-		vector[e1].push_back(e2);
-		vector[e2].push_back(e1);
+		la_matris[e1].push_back(e2);
+		la_matris[e2].push_back(e1);
 	}
-
-	vector<PaintedNode> ();
 
 	return 0;
 }
