@@ -6,8 +6,6 @@
 
 using namespace std;
 
-typedef int Group;
-
 int min(int a, int b) {
 	return (a <= b) * a + (a > b) * b;
 }
@@ -26,6 +24,16 @@ void dfs_get_articulations(int i, vector<list<int> >& la_matris, vector<int>& de
 		}
 	}
 
+}
+
+
+map<Group, int> get_groups(vector<list<int> >& la_matris, list<int>& articulations, vector<int>& low) {
+	map<int, int> res;
+	int N = la_matris.size();
+	for (int i = 0 ; i < N; i++) {
+		res.emplace(i, low[i]);
+	}
+	return res;
 }
 
 void create_block_cut_tree(vector<list<int> >& la_matris) {
@@ -56,15 +64,8 @@ void create_block_cut_tree(vector<list<int> >& la_matris) {
 		cout << *it << " ";
 	}
 	cout << endl;
-}
 
-map<Group, int> get_groups(vector<list<int> >& la_matris, list<int>& articulations) {
-	map<Group, int> res;
-	int N = la_matris.size();
-	for (int i = 0 ; i < N; i++) {
-		res.emplace(i, low[i]);
-	}
-	return res;
+	//get_groups(la_matris, articulations, low); lo tengo de yapa, no se si l ovoy a usar todavia
 }
 
 int query_A() {
@@ -94,7 +95,6 @@ int main() {
 		la_matris[e2].push_back(e1);
 	}
 	create_block_cut_tree(la_matris);
-	get_groups(la_matris, articulations);
 
 	return 0;
 }
