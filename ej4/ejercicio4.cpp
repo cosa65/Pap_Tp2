@@ -34,14 +34,15 @@ void recorrer(vector<bool> &dfsRes, vector <vector <int> > &adyacencias, int nod
 
 void DFS (deque<int> &nodos, vector<bool> &dfsRes, vector <vector <int> > &adyacencias, deque <int> &finalizados, vector<int> &en_componente, int tipo)
 {
-
 	for(int i = 0; i < A; i++)
+	{	
 		if (dfsRes[nodos[i]] == false) //si no descubri ya ese nodo
 		{
 			recorrer(dfsRes, adyacencias, nodos[i], finalizados, en_componente, tipo);
 			if (tipo == 1)
 				com_con++;
 		}
+	}
 }
 
 ////////////////////////////////
