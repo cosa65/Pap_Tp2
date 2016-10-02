@@ -48,7 +48,7 @@ ostream& operator<< (ostream& stream, Edge& e) {
 class BlockGraphProcessor {
 public:
 
-	BlockGraphProcessor(vector<list<int> >& la_matris);
+	BlockGraphProcessor(vector<list<int> >& la_matris, vector<Edge> calles);
 	void process_articulation_points();
 	void dfs_set_articulations(int i, int d);
 	void add_new_component(Edge e);
@@ -58,9 +58,9 @@ public:
 	void print_components();
 	void print_block_cut_tree();
 	void print_components_of_nodes();
-	int query_A();
-	int query_B();
-	int query_C();
+	int query_A(int e1, int e2);
+	int query_B(int calle);
+	int query_C(int e1);
 
 private:
 
@@ -75,10 +75,12 @@ private:
 	vector<int> components_sizes;
 	stack<Edge> members_of_component;
 	int components_num;
+	vector<Edge> calles;
 };
 
-BlockGraphProcessor::BlockGraphProcessor(vector<list<int> >& la_matris) {
+BlockGraphProcessor::BlockGraphProcessor(vector<list<int> >& la_matris, vector<Edge> calles) {
 	this->la_matris = la_matris;
+	this->calles = calles;
 	//members_of_component;
 	//articulation;
 	depth.resize(la_matris.size());
@@ -241,15 +243,20 @@ void BlockGraphProcessor::print_components_of_nodes() {
 }
 
 int BlockGraphProcessor::query_A(int e1, int e2) {
-	
+return -1;
 }
 
-int BlockGraphProcessor::query_B() {
-	return -1;
+int BlockGraphProcessor::query_B(int num_calle) {
+	Edge calle = calles[num_calle];
+	if (articulation[calle.v] and articulation[calle.w]) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
-int BlockGraphProcessor::query_C() {
-	return -1;	
+int BlockGraphProcessor::query_C(int e1) {
+	return components_sizes[e1]-1;
 }
 
 int main() {
@@ -258,6 +265,7 @@ int main() {
 	cin >> N >> M;
 
 	vector<list<int> > la_matris(N, list<int>());
+	vector<Edge> calles;
 	int e1, e2;
 
 	for (int i = 0; i < M; i++) {
@@ -265,9 +273,10 @@ int main() {
 		cin >> e2;
 		la_matris[e1].push_back(e2);
 		la_matris[e2].push_back(e1);
+		calles.push_back(Edge(e1, e2));
 	}
 	
-	BlockGraphProcessor solver(la_matris);
+	BlockGraphProcessor solver(la_matris, calles);
 	solver.process_articulation_points();
 	solver.print_components();
 	solver.create_block_cut_tree();
