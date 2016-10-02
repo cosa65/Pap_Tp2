@@ -13,16 +13,16 @@ int Q;
 int com_con;
 
 
-void recorrer(vector<bool> &dfsRes, vector <vector <int> > &adyacencias, int nodo, deque <int> &finalizados, vector<int> &en_componente, int tipo)
+void recorrer(vector<bool> &descubierto, vector <vector <int> > &adyacencias, int nodo, deque <int> &finalizados, vector<int> &en_componente, int tipo)
 {
 
-	dfsRes[nodo] = true; //ya fue descubierto
+	descubierto[nodo] = true; //ya fue descubierto
 
 	for (int i = 0; i < adyacencias[nodo].size(); ++i)
 	{
 		int nodo_vecino = adyacencias[nodo][i];
-		if (dfsRes[nodo_vecino] == false) //ese vecino aun no fue descubierto
-			recorrer(dfsRes, adyacencias, nodo_vecino, finalizados, en_componente, tipo);		
+		if (descubierto[nodo_vecino] == false) //ese vecino aun no fue descubierto
+			recorrer(descubierto, adyacencias, nodo_vecino, finalizados, en_componente, tipo);		
 	}
 
 	if (tipo == 0)
@@ -32,13 +32,13 @@ void recorrer(vector<bool> &dfsRes, vector <vector <int> > &adyacencias, int nod
 }
 
 
-void DFS (deque<int> &nodos, vector<bool> &dfsRes, vector <vector <int> > &adyacencias, deque <int> &finalizados, vector<int> &en_componente, int tipo)
+void DFS (deque<int> &nodos, vector<bool> &descubierto, vector <vector <int> > &adyacencias, deque <int> &finalizados, vector<int> &en_componente, int tipo)
 {
 	for(int i = 0; i < A; i++)
 	{	
-		if (dfsRes[nodos[i]] == false) //si no descubri ya ese nodo
+		if (descubierto[nodos[i]] == false) //si no descubri ya ese nodo
 		{
-			recorrer(dfsRes, adyacencias, nodos[i], finalizados, en_componente, tipo);
+			recorrer(descubierto, adyacencias, nodos[i], finalizados, en_componente, tipo);
 			if (tipo == 1)
 				com_con++;
 		}
