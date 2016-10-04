@@ -63,18 +63,21 @@ public:
 	BlockGraphProcessor(vector<list<int> >& la_matris, vector<Edge> calles);
 	void process_articulation_points();
 	void dfs_set_articulations(int i, int d);
+	bool bridge(Edge e);
+	void create_block_cut_tree();
 	void add_new_component(Edge e);
 	void add_last_component();
-	void create_block_cut_tree();
-	int get_unvisited_node(vector<bool> visited);
 	void save_component_size(list<int> in_component, int res);
+	int get_unvisited_node(vector<bool> visited);
 	void start_dfs_without_bridges();
 	int dfs_without_bridges(int d, vector<bool>& visited, list<int>& nodes_in_component);
-	bool bridge(Edge e);
+	int start_dfs_bridges_between_nodes(int e1, int e2);
+	bool dfs_bridges_between_nodes(int d, int e2, int& bridges, vector<bool>& visited);
 	void print_components();
 	void print_block_cut_tree();
 	void print_components_of_nodes();
 	void print_components_sizes();
+	void print_articulations();
 	int query_A(int e1, int e2);
 	int query_B(int calle);
 	int query_C(int e1);
@@ -83,12 +86,14 @@ public:
 
 private:
 
+	int N;
 	vector<list<int> > la_matris;
 	vector<list<int> > block_cut_tree;
 	vector<int> depth;
 	vector<int> low;
 	vector<int> parent;
 	vector<bool> articulation;
+	vector<bool> super_articulation;
 	vector<int> component;
 	list<list<Edge> > components_edges;
 	vector<int> blocks_cuts_sizes;
@@ -97,6 +102,7 @@ private:
 	vector<Edge> calles;
 	vector<int> results_queryC;
 	vector<int> connected_components_sizes;
+	vector<vector<bool> > is_bridge;
 };
 
 BlockGraphProcessor::BlockGraphProcessor(vector<list<int> >& la_matris, vector<Edge> calles) {
@@ -104,13 +110,15 @@ BlockGraphProcessor::BlockGraphProcessor(vector<list<int> >& la_matris, vector<E
 	this->calles = calles;
 	//members_of_component;
 	//articulation;
-	depth.resize(la_matris.size());
-	low.resize(la_matris.size());
-	parent.resize(la_matris.size(), -1);
-	articulation.resize(la_matris.size(), false);
-	component.resize(la_matris.size(), -1);
-	results_queryC.resize(la_matris.size(), 0);
-	connected_components_sizes.resize(la_matris.size());
+	N = la_matris.size();
+	depth.resize(N);
+	low.resize(N);
+	parent.resize(N, -1);
+	articulation.resize(N, false);
+	component.resize(N, -1);
+	results_queryC.resize(N, 0);
+	connected_components_sizes.resize(N);
+	is_bridge.resize(N, vector<bool> (N));
 	components_num = 0;
 }
 
@@ -128,6 +136,10 @@ void BlockGraphProcessor::dfs_set_articulations(int i, int d) {
 			if (low[*it] >= depth[i] and i != 0) {
 				articulation[i] = true;
 				add_new_component(Edge(*it, i));
+			}
+			if (low[*it] >= depth[*it]) {
+				is_bridge[i][*it] = true;
+				is_bridge[*it][i] = true;
 			}
 			low[i] = min(low[i], low[*it]);
 		} else if (parent[i] != *it) {
@@ -150,19 +162,16 @@ void BlockGraphProcessor::process_articulation_points() {
 			cambio = true;
 			break;
 		}
+		if (low[*it] >= depth[*it]) {
+			is_bridge[0][*it] = true;
+			is_bridge[*it][0] = true;
+		}
 	}
 
 	if (cambio) articulation[0] = true;
 	
 	add_last_component();			//Agrego al componente del nodo raiz, 
 									//que no lo incluye en el proceso normal porque es un caso borde.
-
-	cout << "Puntos de articulacion: ";
-	int N = articulation.size();
-	for (i = 0; i < N; i++) {
-		if (articulation[i]) cout << i << " ";
-	}
-	cout << endl;
 
 	for(i = 0; i < N; i++) {		//Ahora genero componentes de cada punto de articulacion
 		if(articulation[i]) {
@@ -209,6 +218,10 @@ void BlockGraphProcessor::add_last_component() {
 	}
 }
 
+bool BlockGraphProcessor::bridge(Edge e) {
+	return is_bridge[e.v][e.w];
+}
+
 void BlockGraphProcessor::create_block_cut_tree() {
 	int i = 0;
 	int component_of_v;
@@ -231,29 +244,30 @@ void BlockGraphProcessor::create_block_cut_tree() {
 	}
 }
 
-int BlockGraphProcessor::get_unvisited_node(vector<bool> visited) {
-	int N = la_matris.size();
-	for (int i = 0; i < N; ++i) {
-		if (not visited[i]) {
-			return i;
-		}
-	}
-}
-
 void BlockGraphProcessor::save_component_size(list<int> nodes_in_component, int size) {
 	for (list<int>::iterator it = nodes_in_component.begin(); it != nodes_in_component.end(); it++) {
 		connected_components_sizes[*it] = size;
 	}
 }
 
+int BlockGraphProcessor::get_unvisited_node(vector<bool> visited) {
+	
+	for (int i = 0; i < N; ++i) {
+		if (not visited[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void BlockGraphProcessor::start_dfs_without_bridges() {
 	int size;
-	int N = la_matris.size();
+	
 	vector<bool> visited(N, false);
-	list<int> nodes_in_component(N);
 	int next_d = get_unvisited_node(visited);
 
 	while (next_d != -1) {
+		list<int> nodes_in_component(N);
 		size = dfs_without_bridges(next_d, visited, nodes_in_component);
 		save_component_size(nodes_in_component, size);
 		next_d = get_unvisited_node(visited);
@@ -261,7 +275,6 @@ void BlockGraphProcessor::start_dfs_without_bridges() {
 }
 
 int BlockGraphProcessor::dfs_without_bridges(int d, vector<bool>& visited, list<int>& nodes_in_component) {
-	int N = la_matris.size();
 	visited[d] = true;
 	int amount_in_component = 0;
 	for (list<int>::iterator it = la_matris[d].begin(); it != la_matris[d].end(); it++) {
@@ -273,10 +286,38 @@ int BlockGraphProcessor::dfs_without_bridges(int d, vector<bool>& visited, list<
 	return amount_in_component + 1;
 }
 
-bool BlockGraphProcessor::bridge(Edge e) {
-	return articulation[e.v] and articulation[e.w];
+int BlockGraphProcessor::start_dfs_bridges_between_nodes(int e1, int e2) {
+	
+	vector<bool> visited(N, false);
+	int res = 0;
+	dfs_bridges_between_nodes(e1, e2, res, visited);
+	return res;
 }
 
+bool BlockGraphProcessor::dfs_bridges_between_nodes(int d, int e2, int& bridges, vector<bool>& visited) {
+	visited[d] = true;
+	bool found = false;
+
+	for (list<int>::iterator it = la_matris[d].begin(); it != la_matris[d].end(); it++) {
+		if (*it == e2) {
+			if(bridge(Edge(*it, d))) {
+				bridges++;
+			}
+			return true;
+		}
+		if (!visited[*it]) {
+			found = dfs_bridges_between_nodes(*it, e2, bridges, visited);
+			if (found) {
+				if(bridge(Edge(*it, d))) {
+					bridges++;
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void BlockGraphProcessor::print_components() {
 	int i = 0;
 	for(list<list<Edge> >::iterator iti = components_edges.begin(); iti != components_edges.end(); iti++) {
@@ -290,8 +331,8 @@ void BlockGraphProcessor::print_components() {
 }
 
 void BlockGraphProcessor::print_block_cut_tree() {
-	int n = block_cut_tree.size();
-	for (int i = 0; i < n; i++) {
+	int cut_tree_size = block_cut_tree.size();
+	for (int i = 0; i < cut_tree_size; i++) {
 		cout << "Component " << i << endl;
 		for (list<int>::iterator it = block_cut_tree[i].begin(); it != block_cut_tree[i].end(); it++) {
 			cout << *it << " ";
@@ -301,26 +342,38 @@ void BlockGraphProcessor::print_block_cut_tree() {
 }
 
 void BlockGraphProcessor::print_components_of_nodes() {
-	int N = la_matris.size();
+	
 	for(int i = 0; i < N; i++) {
 		cout << "Node " << i << " Component " << component[i] << endl;
 	}
 }
 
 void BlockGraphProcessor::print_components_sizes() {
-	int N = blocks_cuts_sizes.size();
-	for(int i = 0; i < N; i++) {
+	int components_amount = blocks_cuts_sizes.size();
+	for(int i = 0; i < components_amount; i++) {
 		cout << "Component " << i << " size " << blocks_cuts_sizes[i] << endl;
 	}
 }
 
+void BlockGraphProcessor::print_articulations() {
+	
+	cout << "Puntos de articulacion: ";
+	for (int i = 0; i < N; i++) {
+		if (articulation[i]) cout << i << " ";
+	}
+	cout << endl;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int BlockGraphProcessor::query_A(int e1, int e2) {
-	return -1;
+	if (component[e1] == component[e2]) {
+		return 0;
+	}
+	return start_dfs_bridges_between_nodes(e1, e2);
 }
 
 int BlockGraphProcessor::query_B(int num_calle) {
 	Edge calle = calles[num_calle];
-	if (articulation[calle.v] and articulation[calle.w]) {
+	if (bridge(calle)) {
 		return 1;
 	} else {
 		return 0;
@@ -328,7 +381,7 @@ int BlockGraphProcessor::query_B(int num_calle) {
 }
 
 int BlockGraphProcessor::query_C(int e1) {
-	return connected_components_sizes[e1];
+	return (connected_components_sizes[e1] - 1);
 }
 
 void BlockGraphProcessor::solve_queries() {
@@ -343,10 +396,10 @@ void BlockGraphProcessor::solve_queries() {
 		cin >> query_type;
 		if (query_type == 'A') {
 			cin >> arg;
-			inputs.push_back(arg);
+			inputs.push_back(arg-1);
 		}
 		cin >> arg;
-		inputs.push_back(arg);
+		inputs.push_back(arg-1);
 		query_types.push_back(query_type);
 	}
 
@@ -385,6 +438,7 @@ int main() {
 	for (int i = 0; i < M; i++) {
 		cin >> e1;
 		cin >> e2;
+		e1--; e2--;
 		la_matris[e1].push_back(e2);
 		la_matris[e2].push_back(e1);
 		calles.push_back(Edge(e1, e2));
@@ -392,12 +446,13 @@ int main() {
 	
 	BlockGraphProcessor solver(la_matris, calles);
 	solver.process_articulation_points();
-	//solver.print_components();
 	solver.create_block_cut_tree();
-//	solver.print_block_cut_tree();
-//	solver.print_components_of_nodes();
+	solver.start_dfs_without_bridges();
 	solver.solve_queries();
-	solver.print_components_sizes();
+	solver.print_articulations();
+
+	cout << "Entre 10 y 9" << solver.bridge(Edge(9,8)) << endl;
+	cout << "Entre 12 y 13" << solver.bridge(Edge(11,12)) << endl;
 
 	return 0;
 }
