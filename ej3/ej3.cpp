@@ -1,22 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <list>
-#include <stack>
-#include <map>
 
 using namespace std;
 
-struct BlockNode{
-	BlockNode(int block_id, int first_node);
-
-	int block_id;
-	list<int> nodes;
-};
-
-BlockNode::BlockNode(int block_id, int first_node) {
-	this->block_id = block_id;
-	nodes.push_back(first_node);
-}
+/////////////////////////Auxiliares//////////////////////////////////
 
 int min(int a, int b) {
 	return (a <= b) * a + (a > b) * b;
@@ -33,6 +21,8 @@ void agregar_si_no_esta(list<int>& ls, int num) {
 		ls.push_back(num);
 	}
 }
+
+/////////////////////////////////////////////////////////////////////
 
 struct Edge {
 	Edge(int v, int w) {
@@ -62,7 +52,6 @@ public:
 	BlockGraphProcessor(vector<list<int> >& edges_matrix, vector<Edge> calles);
 	
 	bool bridge(Edge e);
-	//void create_block_cut_tree();			No hizo falta!
 
 	void start_dfs_set_articulations();
 	void dfs_set_articulations(int i, int d);
@@ -97,6 +86,7 @@ private:
 	vector<Edge> calles;				//Necesito esto para poder encontrar el edge que busco en O(1), ya que la query es por nro de calle
 	vector<int> connected_components_sizes;		//Tamaños de componentes conexas luego de sacar los puentes
 	vector<vector<bool> > is_bridge;
+
 };
 
 BlockGraphProcessor::BlockGraphProcessor(vector<list<int> >& edges_matrix, vector<Edge> calles) {
