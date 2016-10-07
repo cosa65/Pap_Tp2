@@ -91,6 +91,8 @@ private:
 	vector<int> depth;					//Elementos usados en start_dfs_set_articulations
 	vector<int> low;					//Elementos usados en start_dfs_set_articulations
 	vector<int> parent;					//Elementos usados en start_dfs_set_articulations
+
+	stack<int> unvisited;				//Elemento para dfs_without_bridges
 	
 	vector<bool> articulation;						
 	
@@ -179,25 +181,31 @@ int BlockGraphProcessor::get_unvisited_node(vector<bool> visited) {
 
 void BlockGraphProcessor::start_dfs_without_bridges() {
 	int size;
-	
+	int next_d = 0;
+	unvisited.push(-1);
 	vector<bool> visited(N, false);
-	int next_d = get_unvisited_node(visited);
-
-	while (next_d != -1) {
+	do {
 		list<int> nodes_in_component(N);
 		size = dfs_without_bridges(next_d, visited, nodes_in_component);
 		save_component_size(nodes_in_component, size);
-		next_d = get_unvisited_node(visited);
+		next_d = unvisited.top();
+		unvisited.pop();
 	}
+	while (next_d != -1);
 }
 
 int BlockGraphProcessor::dfs_without_bridges(int d, vector<bool>& visited, list<int>& nodes_in_component) {
 	visited[d] = true;
 	int amount_in_component = 0;
+	cout << "Hola soy " << d << endl;
 	for (list<int>::iterator it = edges_matrix[d].begin(); it != edges_matrix[d].end(); it++) {
-		if ( (not bridge(Edge(*it, d))) and (not visited[*it]) ) {
-			amount_in_component += dfs_without_bridges(*it, visited, nodes_in_component);
-		}	
+		if (not visited[*it]) {
+			if (not bridge(Edge(*it, d))) {
+				amount_in_component += dfs_without_bridges(*it, visited, nodes_in_component);
+			} else {
+				unvisited.push(*it);
+			}
+		}
 	}
 	nodes_in_component.push_back(d);
 	return amount_in_component + 1;
@@ -313,10 +321,10 @@ int main() {
 		calles.push_back(Edge(e1, e2));
 	}
 	
-	BlockGraphProcessor solver(edges_matrix, calles);
-	solver.start_dfs_set_articulations();
-	solver.start_dfs_without_bridges();						//Preprocesar los datos para query C
-	solver.solve_queries();
+		BlockGraphProcessor solver(edges_matrix, calles);
+		solver.start_dfs_set_articulations();
+		solver.start_dfs_without_bridges();						//Preprocesar los datos para query C
+		solver.solve_queries();
 
 	return 0;
 }
