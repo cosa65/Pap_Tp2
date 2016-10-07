@@ -6,8 +6,8 @@ using namespace std;
 int main(){
 	int n, d;
 	cin >> n >> d;
-    int source = 2*n;
-    int sink = 2*n + 1;
+	int source = 2*n;
+	int sink = 2*n + 1;
 	MatrizDeFlujo mat(2*n + 2, source, sink);
 	vector<vector<int> > ady(n, vector<int>(n, 0));
 	vector<vector<int> > precios(n, vector<int>(d));

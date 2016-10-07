@@ -7,8 +7,8 @@ int main(){
 	vector<int> alumnos;
 	vector<int> escuelas;
 	char type;
-    int source = 2*n;
-    int sink = 2*n + 1;
+	int source = 2*n;
+	int sink = 2*n + 1;
 	MatrizDeFlujo mat(2*n + 2, source, sink);
 	for (int i=0; i<n; i++) {
 		cin >> type;
@@ -24,11 +24,11 @@ int main(){
 		mat.agregarEje(ady1-1, n + ady2-1, 1, 0);
 		mat.agregarEje(ady2-1, n + ady1-1, 1, 0);
 	}
-    //Eje de in-node a out-node
+	//Eje de in-node a out-node
 	for (int i = 0; i<n; i++) 
 		mat.agregarEje(n+i, i, 1, 0);
 
-    for (int i = 0; i<alumnos.size(); i++)
+	for (int i = 0; i<alumnos.size(); i++)
 		mat.agregarEje(source, n + alumnos[i], 1, 0);
 
 	for (int i = 0; i<escuelas.size(); i++)
