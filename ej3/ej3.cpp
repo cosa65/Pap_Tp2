@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <stack>
 
 using namespace std;
 
@@ -187,7 +188,6 @@ void BlockGraphProcessor::start_dfs_without_bridges() {
 int BlockGraphProcessor::dfs_without_bridges(int d, vector<bool>& visited, list<int>& nodes_in_component) {
 	visited[d] = true;
 	int amount_in_component = 0;
-	cout << "Hola soy " << d << endl;
 	for (list<int>::iterator it = edges_matrix[d].begin(); it != edges_matrix[d].end(); it++) {
 		if (not visited[*it]) {
 			if (not bridge(Edge(*it, d))) {
